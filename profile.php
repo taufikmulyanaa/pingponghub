@@ -1,86 +1,22 @@
-<?php include 'includes/header.php'; ?>
-
 <?php
+// File: profile.php (Controller)
+include 'includes/header.php';
+
 // Asumsikan user yang login punya ID 1
-$loggedInUserId = 1; 
+$loggedInUserId = 1;
 
-// Cek apakah ada ID di URL, jika tidak gunakan ID user yang login
-$userId = isset($_GET['id']) ? (int)$_GET['id'] : $loggedInUserId;
-
-$userStmt = query($pdo, 
-    "SELECT u.*, s.*, c.name as clubName, c.logo as clubLogo 
-     FROM users u
-     LEFT JOIN user_stats s ON u.id = s.user_id
-     LEFT JOIN clubs c ON u.club_id = c.id 
-     WHERE u.id = ?", 
-    [$userId]
-);
-$user = $userStmt->fetch(PDO::FETCH_ASSOC);
-
-if (!$user) {
-    echo "<p class='p-4 text-center'>User tidak ditemukan.</p>";
-    include 'includes/footer.php';
-    exit();
+// --- VALIDASI INPUT ---
+// Cek apakah ada ID di URL, pastikan itu angka positif
+$userId = $loggedInUserId; // Default ke user yang login
+if (isset($_GET['id']) && filter_var($_GET['id'], FILTER_VALIDATE_INT, ['options' => ['min_range' => 1]])) {
+    $userId = (int)$_GET['id'];
 }
+
+// Ambil data user menggunakan fungsi terpusat
+$user = getUserData($pdo, $userId);
+
+// Muat template untuk menampilkan data
+include 'templates/profile_template.php';
+
+include 'includes/footer.php';
 ?>
-
-<div class="max-w-4xl mx-auto">
-    <header class="bg-white p-4 border-b border-gray-100">
-         <div class="flex items-center">
-            <?php if ($userId !== $loggedInUserId): ?>
-            <a href="javascript:history.back()" class="mr-4 p-2">
-                <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"/></svg>
-            </a>
-            <?php endif; ?>
-            <h1 class="text-xl font-bold text-gray-900">Profile</h1>
-        </div>
-    </header>
-
-    <div class="bg-white p-6 text-center border-b border-gray-100">
-        <img src="<?= htmlspecialchars($user['photo'] ?? 'https://via.placeholder.com/150') ?>" class="w-24 h-24 rounded-full mx-auto mb-4">
-        <h2 class="text-2xl font-bold text-gray-900 mb-2"><?= htmlspecialchars($user['name']) ?></h2>
-        <div class="flex items-center justify-center text-gray-600 mb-3">
-            <span class="mr-4">📍 <?= htmlspecialchars($user['location']) ?></span>
-            <span>⭐ <?= htmlspecialchars($user['elo']) ?></span>
-        </div>
-        <div class="flex items-center justify-center space-x-2 mb-3">
-            <span class="bg-blue-100 text-blue-800 text-sm px-3 py-1 rounded-full"><?= htmlspecialchars($user['skill']) ?></span>
-            <span class="bg-green-100 text-green-800 text-sm px-3 py-1 rounded-full"><?= htmlspecialchars($user['style']) ?></span>
-        </div>
-         <?php if ($user['clubName']) : ?>
-            <div class="inline-flex items-center bg-orange-50 p-3 rounded-lg border border-orange-200">
-                <img src="<?= htmlspecialchars($user['clubLogo']) ?>" class="w-6 h-6 rounded-full mr-2">
-                <span class="text-orange-800 font-medium"><?= htmlspecialchars($user['clubName']) ?></span>
-            </div>
-        <?php endif; ?>
-    </div>
-
-    <div class="bg-white p-4">
-         <h3 class="font-semibold text-gray-900 mb-3">Statistics</h3>
-         <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
-            <?php
-                $matches = $user['matches'] ?? 0;
-                $wins = $user['wins'] ?? 0;
-                $winRate = ($matches > 0) ? round(($wins / $matches) * 100) : 0;
-            ?>
-             <div class="text-center bg-gray-50 p-3 rounded-lg">
-                <p class="text-2xl font-bold text-gray-900"><?= $matches ?></p>
-                <p class="text-sm text-gray-600">Total Matches</p>
-             </div>
-             <div class="text-center bg-gray-50 p-3 rounded-lg">
-                 <p class="text-2xl font-bold text-gray-900"><?= $winRate ?>%</p>
-                 <p class="text-sm text-gray-600">Win Rate</p>
-            </div>
-             <div class="text-center bg-gray-50 p-3 rounded-lg">
-                <p class="text-2xl font-bold text-gray-900"><?= $user['tournaments'] ?? 0 ?></p>
-                <p class="text-sm text-gray-600">Tournaments</p>
-             </div>
-             <div class="text-center bg-gray-50 p-3 rounded-lg">
-                 <p class="text-2xl font-bold text-gray-900">#<?= $user['current_rank'] ?? 'N/A' ?></p>
-                 <p class="text-sm text-gray-600">Rank</p>
-            </div>
-        </div>
-    </div>
-</div>
-
-<?php include 'includes/footer.php'; ?>

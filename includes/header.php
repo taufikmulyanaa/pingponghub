@@ -1,4 +1,7 @@
-<?php require_once 'config/db.php'; ?>
+<?php 
+require_once 'config/db.php'; 
+require_once 'lib/functions.php';
+?>
 <!DOCTYPE html>
 <html lang="id">
 <head>
@@ -8,10 +11,9 @@
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
     <style>
-        body { 
-            font-family: 'Inter', sans-serif; 
-            padding-bottom: 64px; /* Memberi ruang untuk navigasi bawah di mobile */
-        }
+        body { font-family: 'Inter', sans-serif; }
+        /* Atur agar konten tidak tertutup bottom nav di mobile */
+        body { padding-bottom: 64px; }
         @media (min-width: 768px) {
             body { padding-bottom: 0; }
         }
@@ -20,8 +22,7 @@
 <body class="bg-gray-50">
 
     <div class="md:flex">
-        <!-- Sidebar untuk Desktop -->
-        <aside class="hidden md:block md:w-64 bg-white border-r border-gray-200 p-6 min-h-screen fixed top-0 left-0">
+        <aside class="hidden md:block md:w-64 bg-white border-r border-gray-200 p-6 min-h-screen">
             <div class="flex items-center mb-8">
                 <span class="text-3xl font-bold text-orange-500 mr-2">🏓</span>
                 <h1 class="text-2xl font-bold text-gray-900">PingPong+</h1>
@@ -35,7 +36,7 @@
                     ['id' => 'ptm', 'label' => 'PTM', 'icon' => '🏢'],
                     ['id' => 'profile', 'label' => 'Profile', 'icon' => '👤']
                 ];
-                // Dapatkan nama file halaman saat ini
+                // Dapatkan nama file saat ini
                 $currentPage = basename($_SERVER['PHP_SELF'], ".php");
 
                 foreach ($navItems as $item) {
@@ -47,8 +48,6 @@
                 }
                 ?>
             </nav>
-        </aside>
+            </aside>
 
-        <!-- Area Konten Utama -->
-        <main class="flex-grow md:ml-64">
-            <!-- Konten dari halaman spesifik akan dimuat di sini -->
+        <main class="flex-grow">
