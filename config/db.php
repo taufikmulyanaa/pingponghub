@@ -16,7 +16,7 @@ if (IS_DEVELOPMENT) {
     error_reporting(0);
     // Catat error ke file log
     ini_set('log_errors', 1);
-    ini_set('error_log', __DIR__ . '/../logs/php-error.log'); // Pastikan folder 'logs' ada dan writable
+    ini_set('error_log', __DIR__ . '/../logs/php-error.log');
 }
 
 $host = 'localhost';
@@ -25,17 +25,26 @@ $user = 'root';
 $pass = '';
 
 try {
-    $pdo = new PDO("mysql:host=$host;dbname=$dbname;charset=utf8", $user, $pass);
+    $pdo = new PDO("mysql:host=$host;dbname=$dbname;charset=utf8mb4", $user, $pass);
     $pdo->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
     $pdo->setAttribute(PDO::ATTR_DEFAULT_FETCH_MODE, PDO::FETCH_ASSOC);
+    
+    // Set timeout untuk mencegah hanging
+    $pdo->setAttribute(PDO::ATTR_TIMEOUT, 30);
+    
+    // Optimize MySQL connection
+    $pdo->exec("SET SESSION wait_timeout = 300");
+    $pdo->exec("SET SESSION interactive_timeout = 300");
+    
 } catch (PDOException $e) {
     // Tangani error koneksi dengan aman
     if (IS_DEVELOPMENT) {
-        die("Koneksi ke database gagal: " . $e->getMessage());
+        die("Database connection failed: " . $e->getMessage());
     } else {
-        // Pesan untuk pengguna di lingkungan produksi
-        http_response_code(500); // Internal Server Error
-        die("Terjadi masalah pada server. Silakan coba lagi nanti.");
+        // Log error dan tampilkan pesan user-friendly di produksi
+        error_log("Database connection failed: " . $e->getMessage());
+        http_response_code(500);
+        die("Service temporarily unavailable. Please try again later.");
     }
 }
 ?>

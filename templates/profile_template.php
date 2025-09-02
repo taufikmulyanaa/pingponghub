@@ -1,25 +1,33 @@
 <?php
-// File: templates/profile_template.php
+// File: templates/profile_template.php - FIXED
 if (!$user): ?>
     <div class="max-w-4xl mx-auto p-4">
         <header class="bg-card p-4 border-b border-border">
             <h1 class="text-xl font-bold text-foreground flex items-center">
                 <i data-lucide="alert-circle" class="w-6 h-6 text-red-500 mr-2"></i>
-                Error
+                Profile - Error
             </h1>
         </header>
         <div class="card p-8 text-center">
             <i data-lucide="user-x" class="w-16 h-16 text-muted-foreground mx-auto mb-4"></i>
-            <p class="text-muted-foreground mb-4">User not found.</p>
-            <a href="index.php" class="btn btn-primary">
-                <i data-lucide="home" class="w-4 h-4 mr-2"></i>
-                Go Home
-            </a>
+            <h4 class="text-lg font-semibold text-foreground mb-2">User Not Found</h4>
+            <p class="text-muted-foreground mb-4">The requested user profile could not be found.</p>
+            <div class="space-x-4">
+                <a href="index.php" class="btn btn-primary">
+                    <i data-lucide="home" class="w-4 h-4 mr-2"></i>
+                    Go Home
+                </a>
+                <a href="discover.php" class="btn btn-secondary">
+                    <i data-lucide="search" class="w-4 h-4 mr-2"></i>
+                    Find Players
+                </a>
+            </div>
         </div>
     </div>
 <?php else: 
-    // Get variables from controller scope
-    global $loggedInUserId, $userId;
+    // Get variables safely
+    $loggedInUserId = $GLOBALS['loggedInUserId'] ?? 1;
+    $userId = $GLOBALS['userId'] ?? 1;
 ?>
 <div class="max-w-4xl mx-auto">
     <!-- Header -->
@@ -191,7 +199,7 @@ if (!$user): ?>
             
             <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
                 <?php 
-                // You can fetch equipment data from user_equipment table
+                // Sample equipment data - you can fetch from user_equipment table
                 $equipment = [
                     ['icon' => 'square', 'label' => 'Blade', 'value' => 'Butterfly Viscaria'],
                     ['icon' => 'circle', 'label' => 'Forehand Rubber', 'value' => 'DHS Hurricane 3'],
