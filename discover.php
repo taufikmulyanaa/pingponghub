@@ -18,7 +18,7 @@ include 'includes/header.php';
                 <a href="profile.php?id=<?= $user['id'] ?>" class="block">
                     <div class="flex items-center">
                         <div class="relative mr-4">
-                            <img src="<?= htmlspecialchars($user['photo']) ?>" class="w-12 h-12 rounded-full">
+                            <img src="<?= htmlspecialchars($user['photo'] ?? 'https://via.placeholder.com/150') ?>" class="w-12 h-12 rounded-full">
                             <?php if ($user['online']): ?>
                                 <span class="absolute bottom-0 right-0 w-3 h-3 bg-green-500 border-2 border-white rounded-full"></span>
                             <?php endif; ?>

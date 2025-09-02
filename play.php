@@ -21,30 +21,29 @@ include 'includes/header.php';
         </div>
         
         <?php
-        // Cek apakah tabel turnamen ada sebelum melakukan query
         try {
-            $tournamentsStmt = query($pdo, "SELECT * FROM tournaments WHERE status = 'Open' ORDER BY tournament_date ASC LIMIT 3");
+            $tournamentsStmt = query($pdo, "SELECT * FROM tournaments WHERE status = 'Open' ORDER BY date ASC LIMIT 3");
             
             if ($tournamentsStmt->rowCount() > 0) {
                 while ($t = $tournamentsStmt->fetch(PDO::FETCH_ASSOC)):
-                    // Untuk persentase pendaftar, kita perlu data pendaftar aktual
-                    // Untuk saat ini, kita gunakan angka acak untuk visualisasi
-                    $participants = rand(5, $t['maxParticipants']); 
-                    $progress = ($participants / $t['maxParticipants']) * 100;
+                    // Gunakan data partisipan dari database
+                    $participants = $t['participants'] ?? 0;
+                    $max_participants = $t['max_participants'] ?? 1; // Hindari pembagian dengan nol
+                    $progress = ($participants / $max_participants) * 100;
         ?>
         <div class="bg-white p-4 border-b border-gray-100 cursor-pointer hover:bg-gray-50">
             <div class="flex items-start justify-between mb-3">
                 <div class="flex-1 pr-4">
                     <h3 class="font-medium text-gray-900 mb-1"><?= htmlspecialchars($t['name']) ?></h3>
                     <div class="space-y-1 text-sm text-gray-600">
-                        <p>📅 <?= date("d M Y", strtotime($t['tournament_date'])) ?></p>
+                        <p>📅 <?= date("d M Y", strtotime($t['date'])) ?></p>
                         <p>📍 <?= htmlspecialchars($t['location']) ?></p>
                         <p>🏆 Rp <?= number_format($t['prize'], 0, ',', '.') ?></p>
                     </div>
                 </div>
                 <div class="text-right">
                     <span class="bg-blue-100 text-blue-800 text-xs px-2 py-1 rounded-full"><?= htmlspecialchars($t['category']) ?></span>
-                    <p class="text-xs text-gray-500 mt-2">👥 <?= $participants ?>/<?= $t['maxParticipants'] ?></p>
+                    <p class="text-xs text-gray-500 mt-2">👥 <?= $participants ?>/<?= $t['max_participants'] ?></p>
                 </div>
             </div>
             <div class="w-full bg-gray-200 rounded-full h-2 mb-3">
@@ -61,13 +60,12 @@ include 'includes/header.php';
                 echo "<p class='text-center text-gray-500 p-4'>Belum ada turnamen yang tersedia.</p>";
             }
         } catch (PDOException $e) {
-            // Tampilkan pesan jika tabel tidak ada
-             echo "<p class='text-center text-red-500 p-4'>Error: Tabel 'tournaments' tidak ditemukan. Silakan jalankan skrip SQL untuk membuatnya.</p>";
+             echo "<p class='text-center text-red-500 p-4'>Error: " . $e->getMessage() . "</p>";
         }
         ?>
     </div>
     
-    </div>
+</div>
 
 <?php 
 include 'includes/footer.php'; 

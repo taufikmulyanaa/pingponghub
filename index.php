@@ -6,10 +6,11 @@ include 'includes/header.php';
 // Asumsikan pengguna yang sedang login memiliki ID = 1 untuk demonstrasi
 $currentUserId = 1;
 $userStmt = query($pdo, 
-    "SELECT users.*, clubs.shortName as clubShortName 
-     FROM users 
-     LEFT JOIN clubs ON users.clubId = clubs.id 
-     WHERE users.id = ?", 
+    "SELECT u.*, s.*, c.short_name as clubShortName 
+     FROM users u
+     LEFT JOIN user_stats s ON u.id = s.user_id
+     LEFT JOIN clubs c ON u.club_id = c.id 
+     WHERE u.id = ?", 
     [$currentUserId]
 );
 $user = $userStmt->fetch(PDO::FETCH_ASSOC);
@@ -21,9 +22,9 @@ if (!$user) {
     exit;
 }
 
-// Hitung notifikasi yang belum dibaca (contoh)
-// Anda perlu membuat tabel 'notifications' untuk ini
-$unreadCount = 2; // Ganti dengan query dinamis nanti
+// Hitung notifikasi yang belum dibaca dari database
+$unreadStmt = query($pdo, "SELECT COUNT(*) FROM notifications WHERE recipient_user_id = ? AND is_read = 0", [$currentUserId]);
+$unreadCount = $unreadStmt->fetchColumn();
 ?>
 
 <div class="max-w-4xl mx-auto">
@@ -68,7 +69,7 @@ $unreadCount = 2; // Ganti dengan query dinamis nanti
         <div class="bg-gradient-to-r from-orange-500 to-orange-600 p-4 text-white">
             <div class="flex items-center">
                 <div class="relative">
-                    <img src="<?= htmlspecialchars($user['photo']) ?>" class="w-16 h-16 rounded-full border-4 border-white shadow-lg">
+                    <img src="<?= htmlspecialchars($user['photo'] ?? 'https://via.placeholder.com/150') ?>" class="w-16 h-16 rounded-full border-4 border-white shadow-lg">
                     <?php if ($user['online']): ?>
                     <div class="absolute -bottom-1 -right-1 bg-white rounded-full p-1">
                         <div class="w-3 h-3 bg-green-500 rounded-full"></div>
@@ -90,12 +91,13 @@ $unreadCount = 2; // Ganti dengan query dinamis nanti
         <div class="p-4">
             <div class="grid grid-cols-4 gap-4">
                 <?php
-                    $winRate = ($user['matches_played'] > 0) ? round(($user['wins'] / $user['matches_played']) * 100) : 0;
-                    // Anda perlu menambahkan kolom 'rank' di tabel users untuk ini
-                    $rank = $user['rank'] ?? 'N/A'; 
+                    $matches = $user['matches'] ?? 0;
+                    $wins = $user['wins'] ?? 0;
+                    $winRate = ($matches > 0) ? round(($wins / $matches) * 100) : 0;
+                    $rank = $user['current_rank'] ?? 'N/A'; 
                 ?>
-                <div class="text-center"><div class="bg-blue-50 rounded-lg p-3"><p class="text-xl font-bold text-gray-900"><?= $user['matches_played'] ?></p><p class="text-xs text-gray-500">Main</p></div></div>
-                <div class="text-center"><div class="bg-green-50 rounded-lg p-3"><p class="text-xl font-bold text-gray-900"><?= $user['wins'] ?></p><p class="text-xs text-gray-500">Menang</p></div></div>
+                <div class="text-center"><div class="bg-blue-50 rounded-lg p-3"><p class="text-xl font-bold text-gray-900"><?= $matches ?></p><p class="text-xs text-gray-500">Main</p></div></div>
+                <div class="text-center"><div class="bg-green-50 rounded-lg p-3"><p class="text-xl font-bold text-gray-900"><?= $wins ?></p><p class="text-xs text-gray-500">Menang</p></div></div>
                 <div class="text-center"><div class="bg-yellow-50 rounded-lg p-3"><p class="text-xl font-bold text-gray-900"><?= $winRate ?>%</p><p class="text-xs text-gray-500">Rate</p></div></div>
                 <div class="text-center"><div class="bg-orange-50 rounded-lg p-3"><p class="text-xl font-bold text-gray-900">#<?= $rank ?></p><p class="text-xs text-gray-500">Rank</p></div></div>
             </div>
@@ -110,28 +112,26 @@ $unreadCount = 2; // Ganti dengan query dinamis nanti
         $feedStmt = query($pdo, 
             "SELECT f.*, u.name as userName, u.photo as userPhoto 
              FROM feed f 
-             JOIN users u ON f.userId = u.id 
+             LEFT JOIN users u ON f.user_id = u.id 
              ORDER BY f.created_at DESC"
         );
         while ($post = $feedStmt->fetch(PDO::FETCH_ASSOC)):
-            // Di sini kita bisa gunakan if/else untuk merender tipe post yang berbeda
-            // Untuk sekarang, kita buat contoh sederhana untuk 'match_report'
         ?>
             <div class="bg-white p-4 border-b border-gray-100">
                 <div class="flex items-center mb-3">
-                    <img src="<?= htmlspecialchars($post['userPhoto']) ?>" class="w-10 h-10 rounded-full mr-3">
+                    <img src="<?= htmlspecialchars($post['userPhoto'] ?? 'https://via.placeholder.com/150') ?>" class="w-10 h-10 rounded-full mr-3">
                     <div>
-                        <p class="font-medium text-gray-900"><?= htmlspecialchars($post['userName']) ?></p>
+                        <p class="font-medium text-gray-900"><?= htmlspecialchars($post['userName'] ?? 'Pengguna Anonim') ?></p>
                         <p class="text-xs text-gray-500"><?= date('d M H:i', strtotime($post['created_at'])) ?></p>
                     </div>
                 </div>
-                <p class="text-gray-800 mb-3"><?= htmlspecialchars($post['content']) ?></p>
+                <p class="text-gray-800 mb-3"><?= nl2br(htmlspecialchars($post['content'])) ?></p>
                 <?php if (!empty($post['image'])): ?>
-                    <img src="<?= htmlspecialchars($post['image']) ?>" class="w-full h-48 rounded-lg object-cover mb-3">
+                    <img src="<?= htmlspecialchars($post['image']) ?>" class="w-full rounded-lg object-cover mb-3" style="max-height: 300px;">
                 <?php endif; ?>
                 <div class="flex items-center space-x-4 text-sm text-gray-500">
-                    <span>❤️ <?= $post['likes'] ?></span>
-                    <span>💬 <?= $post['comments'] ?></span>
+                    <span>❤️ <?= $post['likes'] ?? 0 ?></span>
+                    <span>💬 <?= $post['comments'] ?? 0 ?></span>
                 </div>
             </div>
         <?php endwhile; ?>

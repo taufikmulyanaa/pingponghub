@@ -16,19 +16,19 @@ include 'includes/header.php';
     </header>
 
     <?php
-    // Asumsikan user yang login punya ID 1 dan clubId 1
+    // Asumsikan user yang login punya ID 1
     $loggedInUserId = 1;
-    $userStmt = query($pdo, "SELECT clubId FROM users WHERE id = ?", [$loggedInUserId]);
+    $userStmt = query($pdo, "SELECT club_id FROM users WHERE id = ?", [$loggedInUserId]);
     $userClubId = $userStmt->fetchColumn();
 
-    // Ambil klub milik user
+    $myClub = null;
     if ($userClubId) {
         $myClubStmt = query($pdo, "SELECT * FROM clubs WHERE id = ?", [$userClubId]);
         $myClub = $myClubStmt->fetch(PDO::FETCH_ASSOC);
     }
     ?>
 
-    <?php if (isset($myClub) && $myClub): ?>
+    <?php if ($myClub): ?>
     <div class="bg-white p-4 border-b border-gray-100">
         <h3 class="font-semibold text-gray-900 mb-3">Klub Saya</h3>
         <div class="bg-orange-50 p-4 rounded-lg border border-orange-200 cursor-pointer hover:bg-orange-100">
@@ -39,7 +39,7 @@ include 'includes/header.php';
                     <p class="text-sm text-gray-600"><?= htmlspecialchars($myClub['city']) ?></p>
                 </div>
                 <div class="text-right">
-                    <p class="text-lg font-bold text-orange-600">#<?= htmlspecialchars($myClub['teamRanking']) ?></p>
+                    <p class="text-lg font-bold text-orange-600">#<?= htmlspecialchars($myClub['team_ranking']) ?></p>
                     <p class="text-xs text-gray-500">Ranking</p>
                 </div>
             </div>
@@ -61,13 +61,12 @@ include 'includes/header.php';
                     <div class="flex-1">
                         <div class="flex items-center justify-between mb-1">
                             <p class="font-medium text-gray-900"><?= htmlspecialchars($club['name']) ?></p>
-                            <span class="text-sm text-gray-600">#<?= htmlspecialchars($club['teamRanking']) ?></span>
+                            <span class="text-sm text-gray-600">#<?= htmlspecialchars($club['team_ranking']) ?></span>
                         </div>
                         <p class="text-sm text-gray-600"><?= htmlspecialchars($club['city']) ?></p>
                         <div class="flex items-center space-x-4 text-xs text-gray-500 mt-1">
-                            <span>👥 <?= htmlspecialchars($club['members'] ?? 'N/A') ?></span>
-                            <span>🏆 <?= htmlspecialchars($club['winRate']) ?>%</span>
-                            <span>⭐ <?= htmlspecialchars($club['rating'] ?? 'N/A') ?></span>
+                            <span>👥 <?= htmlspecialchars($club['members'] ?? 'N/A') ?> Anggota</span>
+                            <span>⭐ <?= htmlspecialchars($club['rating'] ?? 'N/A') ?> Rating</span>
                         </div>
                     </div>
                 </div>
@@ -77,6 +76,5 @@ include 'includes/header.php';
 </div>
 
 <?php 
-// Pastikan path ini benar
 include 'includes/footer.php'; 
 ?>

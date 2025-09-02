@@ -7,7 +7,14 @@ $loggedInUserId = 1;
 // Cek apakah ada ID di URL, jika tidak gunakan ID user yang login
 $userId = isset($_GET['id']) ? (int)$_GET['id'] : $loggedInUserId;
 
-$userStmt = query($pdo, "SELECT users.*, clubs.name as clubName, clubs.logo as clubLogo FROM users LEFT JOIN clubs ON users.clubId = clubs.id WHERE users.id = ?", [$userId]);
+$userStmt = query($pdo, 
+    "SELECT u.*, s.*, c.name as clubName, c.logo as clubLogo 
+     FROM users u
+     LEFT JOIN user_stats s ON u.id = s.user_id
+     LEFT JOIN clubs c ON u.club_id = c.id 
+     WHERE u.id = ?", 
+    [$userId]
+);
 $user = $userStmt->fetch(PDO::FETCH_ASSOC);
 
 if (!$user) {
@@ -30,7 +37,7 @@ if (!$user) {
     </header>
 
     <div class="bg-white p-6 text-center border-b border-gray-100">
-        <img src="<?= htmlspecialchars($user['photo']) ?>" class="w-24 h-24 rounded-full mx-auto mb-4">
+        <img src="<?= htmlspecialchars($user['photo'] ?? 'https://via.placeholder.com/150') ?>" class="w-24 h-24 rounded-full mx-auto mb-4">
         <h2 class="text-2xl font-bold text-gray-900 mb-2"><?= htmlspecialchars($user['name']) ?></h2>
         <div class="flex items-center justify-center text-gray-600 mb-3">
             <span class="mr-4">📍 <?= htmlspecialchars($user['location']) ?></span>
@@ -51,15 +58,28 @@ if (!$user) {
     <div class="bg-white p-4">
          <h3 class="font-semibold text-gray-900 mb-3">Statistics</h3>
          <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
+            <?php
+                $matches = $user['matches'] ?? 0;
+                $wins = $user['wins'] ?? 0;
+                $winRate = ($matches > 0) ? round(($wins / $matches) * 100) : 0;
+            ?>
              <div class="text-center bg-gray-50 p-3 rounded-lg">
-                <p class="text-2xl font-bold text-gray-900"><?= $user['matches_played'] ?></p>
+                <p class="text-2xl font-bold text-gray-900"><?= $matches ?></p>
                 <p class="text-sm text-gray-600">Total Matches</p>
              </div>
              <div class="text-center bg-gray-50 p-3 rounded-lg">
-                 <p class="text-2xl font-bold text-gray-900"><?= $user['matches_played'] > 0 ? round(($user['wins'] / $user['matches_played']) * 100) : 0 ?>%</p>
+                 <p class="text-2xl font-bold text-gray-900"><?= $winRate ?>%</p>
                  <p class="text-sm text-gray-600">Win Rate</p>
             </div>
+             <div class="text-center bg-gray-50 p-3 rounded-lg">
+                <p class="text-2xl font-bold text-gray-900"><?= $user['tournaments'] ?? 0 ?></p>
+                <p class="text-sm text-gray-600">Tournaments</p>
+             </div>
+             <div class="text-center bg-gray-50 p-3 rounded-lg">
+                 <p class="text-2xl font-bold text-gray-900">#<?= $user['current_rank'] ?? 'N/A' ?></p>
+                 <p class="text-sm text-gray-600">Rank</p>
             </div>
+        </div>
     </div>
 </div>
 
