@@ -83,48 +83,53 @@ require_once 'lib/functions.php';
     <div class="flex min-h-screen bg-background">
         <!-- Desktop Sidebar -->
         <aside class="hidden md:block w-64 flex-shrink-0 flex flex-col border-r border-border bg-card">
-            <div class="p-6">
+            <div class="p-6 flex-1">
                 <!-- Logo -->
                 <div class="flex items-center mb-8">
-                    <div class="w-8 h-8 rounded-lg bg-orange-500 flex items-center justify-center mr-3">
-                        <i data-lucide="table-tennis-paddle" class="w-5 h-5 text-white"></i>
+                    <div class="w-10 h-10 rounded-xl bg-gradient-to-br from-orange-500 to-orange-600 flex items-center justify-center mr-3 shadow-lg">
+                        <i data-lucide="table-tennis-paddle" class="w-6 h-6 text-white"></i>
                     </div>
                     <h1 class="text-xl font-bold text-foreground">PingPong+</h1>
                 </div>
                 
                 <!-- Navigation -->
-                <nav class="flex flex-col space-y-1">
+                <nav class="flex flex-col space-y-2">
                     <?php
                     $navItems = [
-                        ['id' => 'index', 'label' => 'Home', 'icon' => 'home'],
-                        ['id' => 'discover', 'label' => 'Discover', 'icon' => 'search'],
-                        ['id' => 'play', 'label' => 'Play', 'icon' => 'play'],
-                        ['id' => 'ptm', 'label' => 'Clubs', 'icon' => 'building'],
-                        ['id' => 'profile', 'label' => 'Profile', 'icon' => 'user']
+                        ['id' => 'index', 'label' => 'Home', 'icon' => 'home', 'description' => 'Dashboard & Feed'],
+                        ['id' => 'discover', 'label' => 'Discover', 'icon' => 'compass', 'description' => 'Find Players'],
+                        ['id' => 'play', 'label' => 'Play', 'icon' => 'play', 'description' => 'Tournaments & Venues'],
+                        ['id' => 'ptm', 'label' => 'Clubs', 'icon' => 'building', 'description' => 'Club Management'],
+                        ['id' => 'profile', 'label' => 'Profile', 'icon' => 'user', 'description' => 'My Profile']
                     ];
                     $currentPage = basename($_SERVER['PHP_SELF'], ".php");
 
                     foreach ($navItems as $item) {
                         $isActive = ($currentPage == $item['id']) ? 'nav-item active' : 'nav-item';
-                        echo "<a href='{$item['id']}.php' class='{$isActive}'>
-                                <i data-lucide='{$item['icon']}' class='w-5 h-5'></i>
-                                <span>{$item['label']}</span>
+                        echo "<a href='{$item['id']}.php' class='{$isActive} group' data-tooltip='{$item['description']}'>
+                                <i data-lucide='{$item['icon']}' class='w-5 h-5 transition-transform group-hover:scale-110'></i>
+                                <div class='flex flex-col'>
+                                    <span class='font-medium'>{$item['label']}</span>
+                                    <span class='text-xs opacity-70'>{$item['description']}</span>
+                                </div>
                               </a>";
                     }
                     ?>
                 </nav>
             </div>
             
-            <!-- Upgrade Card -->
-            <div class="mt-auto p-6">
-                <div class="card p-4 gradient-orange text-white">
-                    <div class="flex items-center mb-2">
-                        <i data-lucide="crown" class="w-5 h-5 mr-2"></i>
-                        <span class="font-semibold">Go Premium</span>
+            <!-- User Profile Section -->
+            <div class="p-6 border-t border-border">
+                <div class="flex items-center">
+                    <div class="w-10 h-10 rounded-full bg-orange-500 flex items-center justify-center text-white font-bold mr-3">
+                        BS
                     </div>
-                    <p class="text-sm text-orange-100 mb-3">Unlock advanced features and analytics</p>
-                    <button class="btn w-full bg-white/20 hover:bg-white/30 text-white border-white/30">
-                        Upgrade Now
+                    <div class="flex-1 min-w-0">
+                        <p class="text-sm font-medium text-foreground truncate">Budi Santoso</p>
+                        <p class="text-xs text-muted-foreground">Stoni TTC</p>
+                    </div>
+                    <button class="p-1 text-muted-foreground hover:text-foreground transition-colors">
+                        <i data-lucide="settings" class="w-4 h-4"></i>
                     </button>
                 </div>
             </div>

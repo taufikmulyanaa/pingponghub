@@ -20,6 +20,12 @@ document.addEventListener('DOMContentLoaded', () => {
     
     // === LOADING STATES ===
     initLoadingStates();
+    
+    // === TOOLTIPS ===
+    initTooltips();
+    
+    // === ANIMATIONS ===
+    initAnimations();
 });
 
 /**
@@ -71,6 +77,9 @@ async function performClubSearch(query, container) {
             lucide.createIcons();
         }
         
+        // Add fade-in animation
+        container.classList.add('fade-in');
+        
     } catch (error) {
         console.error('Club search error:', error);
         showErrorState(container, 'Failed to search clubs. Please try again.');
@@ -89,9 +98,14 @@ function initPlayerFilters() {
     
     filterButtons.forEach(button => {
         button.addEventListener('click', async () => {
-            // Update active button state
-            filterButtons.forEach(btn => btn.classList.remove('active'));
+            // Update active button state with animation
+            filterButtons.forEach(btn => {
+                btn.classList.remove('active');
+                btn.style.transform = 'scale(1)';
+            });
             button.classList.add('active');
+            button.style.transform = 'scale(0.95)';
+            setTimeout(() => button.style.transform = 'scale(1)', 150);
             
             const filter = button.dataset.filter;
             
@@ -111,8 +125,8 @@ function initPlayerFilters() {
                     lucide.createIcons();
                 }
                 
-                // Add fade-in animation
-                playerListContainer.classList.add('fade-in');
+                // Add slide-up animation
+                playerListContainer.classList.add('slide-up');
                 
             } catch (error) {
                 console.error('Player filter error:', error);
@@ -131,7 +145,10 @@ function updateResultsHeader(container, header, filterName) {
     const countEl = container.querySelector('#player-count');
     if (countEl) {
         const count = countEl.dataset.count;
-        header.textContent = `${filterName} Players (${count} found)`;
+        header.innerHTML = `
+            <span class="font-semibold">${filterName}</span>
+            <span class="text-muted-foreground font-normal">(${count} found)</span>
+        `;
         countEl.remove();
     }
 }
@@ -204,13 +221,47 @@ function initLoadingStates() {
 }
 
 /**
+ * Initialize tooltips
+ */
+function initTooltips() {
+    const tooltipElements = document.querySelectorAll('[data-tooltip]');
+    
+    tooltipElements.forEach(element => {
+        element.addEventListener('mouseenter', showTooltip);
+        element.addEventListener('mouseleave', hideTooltip);
+    });
+}
+
+/**
+ * Initialize animations
+ */
+function initAnimations() {
+    // Add intersection observer for scroll animations
+    const observer = new IntersectionObserver((entries) => {
+        entries.forEach(entry => {
+            if (entry.isIntersecting) {
+                entry.target.classList.add('animate-in');
+            }
+        });
+    }, { threshold: 0.1 });
+    
+    // Observe cards and major elements
+    document.querySelectorAll('.card, .tournament-card, .venue-card, .club-card').forEach(el => {
+        observer.observe(el);
+    });
+}
+
+/**
  * Show loading state in container
  */
 function showLoadingState(container, message = 'Loading...') {
     container.innerHTML = `
-        <div class="flex flex-col items-center justify-center p-8 text-muted-foreground">
-            <div class="animate-spin rounded-full h-8 w-8 border-b-2 border-orange-500 mb-4"></div>
-            <p class="text-sm">${message}</p>
+        <div class="flex flex-col items-center justify-center p-12 text-muted-foreground">
+            <div class="relative">
+                <div class="animate-spin rounded-full h-12 w-12 border-4 border-orange-200"></div>
+                <div class="animate-spin rounded-full h-12 w-12 border-4 border-orange-500 border-t-transparent absolute top-0 left-0" style="animation-delay: 0.15s"></div>
+            </div>
+            <p class="text-sm mt-4 font-medium">${message}</p>
         </div>
     `;
 }
@@ -220,10 +271,13 @@ function showLoadingState(container, message = 'Loading...') {
  */
 function showErrorState(container, message = 'Something went wrong') {
     container.innerHTML = `
-        <div class="flex flex-col items-center justify-center p-8 text-red-500">
-            <i data-lucide="alert-circle" class="w-8 h-8 mb-4"></i>
-            <p class="text-sm text-center">${message}</p>
-            <button onclick="location.reload()" class="btn btn-secondary mt-4 text-sm">
+        <div class="flex flex-col items-center justify-center p-12 text-red-500">
+            <div class="w-16 h-16 bg-red-100 rounded-full flex items-center justify-center mb-4">
+                <i data-lucide="alert-circle" class="w-8 h-8"></i>
+            </div>
+            <h4 class="text-lg font-semibold text-foreground mb-2">Oops!</h4>
+            <p class="text-sm text-center text-muted-foreground mb-6">${message}</p>
+            <button onclick="location.reload()" class="btn btn-secondary">
                 <i data-lucide="refresh-cw" class="w-4 h-4 mr-2"></i>
                 Try Again
             </button>
@@ -242,87 +296,109 @@ function showErrorState(container, message = 'Something went wrong') {
 function showButtonLoading(button) {
     const originalText = button.innerHTML;
     button.disabled = true;
+    button.classList.add('opacity-70');
     button.innerHTML = `
-        <div class="animate-spin rounded-full h-4 w-4 border-b-2 border-current mr-2"></div>
-        Loading...
+        <div class="flex items-center">
+            <div class="animate-spin rounded-full h-4 w-4 border-2 border-current border-t-transparent mr-2"></div>
+            <span>Loading...</span>
+        </div>
     `;
     
-    // Reset after 3 seconds (adjust as needed)
+    // Reset after 3 seconds
     setTimeout(() => {
         button.disabled = false;
+        button.classList.remove('opacity-70');
         button.innerHTML = originalText;
+        
+        // Reinitialize icons
+        if (typeof lucide !== 'undefined') {
+            lucide.createIcons();
+        }
     }, 3000);
 }
 
 /**
- * Format numbers with proper separators
+ * Show tooltip
  */
-function formatNumber(num) {
-    return new Intl.NumberFormat('en-US').format(num);
+function showTooltip(e) {
+    const text = e.target.getAttribute('data-tooltip');
+    const tooltip = document.createElement('div');
+    tooltip.className = 'fixed bg-gray-900 text-white text-xs px-3 py-2 rounded-lg shadow-lg z-50 pointer-events-none max-w-xs';
+    tooltip.textContent = text;
+    tooltip.id = 'tooltip';
+    
+    document.body.appendChild(tooltip);
+    
+    const rect = e.target.getBoundingClientRect();
+    const tooltipRect = tooltip.getBoundingClientRect();
+    
+    // Position tooltip
+    let left = rect.left + rect.width / 2 - tooltipRect.width / 2;
+    let top = rect.top - tooltipRect.height - 8;
+    
+    // Keep tooltip within viewport
+    if (left < 8) left = 8;
+    if (left + tooltipRect.width > window.innerWidth - 8) {
+        left = window.innerWidth - tooltipRect.width - 8;
+    }
+    if (top < 8) {
+        top = rect.bottom + 8;
+    }
+    
+    tooltip.style.left = left + 'px';
+    tooltip.style.top = top + 'px';
+    
+    // Add fade-in animation
+    tooltip.style.opacity = '0';
+    tooltip.style.transform = 'translateY(4px)';
+    setTimeout(() => {
+        tooltip.style.transition = 'opacity 0.2s, transform 0.2s';
+        tooltip.style.opacity = '1';
+        tooltip.style.transform = 'translateY(0)';
+    }, 10);
 }
 
 /**
- * Format currency (Indonesian Rupiah)
+ * Hide tooltip
  */
-function formatCurrency(amount) {
-    return new Intl.NumberFormat('id-ID', {
-        style: 'currency',
-        currency: 'IDR',
-        minimumFractionDigits: 0
-    }).format(amount);
-}
-
-/**
- * Format date for display
- */
-function formatDate(dateString) {
-    const date = new Date(dateString);
-    return date.toLocaleDateString('en-US', {
-        year: 'numeric',
-        month: 'short',
-        day: 'numeric'
-    });
-}
-
-/**
- * Format time for display
- */
-function formatTime(timeString) {
-    const time = new Date(`1970-01-01T${timeString}`);
-    return time.toLocaleTimeString('en-US', {
-        hour: '2-digit',
-        minute: '2-digit',
-        hour12: false
-    });
+function hideTooltip() {
+    const tooltip = document.getElementById('tooltip');
+    if (tooltip) {
+        tooltip.style.opacity = '0';
+        tooltip.style.transform = 'translateY(4px)';
+        setTimeout(() => tooltip.remove(), 200);
+    }
 }
 
 /**
  * Show toast notification
  */
-function showToast(message, type = 'info') {
+function showToast(message, type = 'info', duration = 5000) {
     const toast = document.createElement('div');
     toast.className = `fixed top-4 right-4 z-50 p-4 rounded-lg shadow-strong max-w-sm transform transition-all duration-300 translate-x-full`;
     
     // Set toast color based on type
-    switch (type) {
-        case 'success':
-            toast.className += ' bg-green-500 text-white';
-            break;
-        case 'error':
-            toast.className += ' bg-red-500 text-white';
-            break;
-        case 'warning':
-            toast.className += ' bg-yellow-500 text-white';
-            break;
-        default:
-            toast.className += ' bg-blue-500 text-white';
-    }
+    const toastTypes = {
+        success: 'bg-green-500 text-white',
+        error: 'bg-red-500 text-white',
+        warning: 'bg-yellow-500 text-white',
+        info: 'bg-blue-500 text-white'
+    };
+    
+    const toastIcons = {
+        success: 'check-circle',
+        error: 'alert-circle',
+        warning: 'alert-triangle',
+        info: 'info'
+    };
+    
+    toast.className += ` ${toastTypes[type] || toastTypes.info}`;
     
     toast.innerHTML = `
         <div class="flex items-center">
-            <i data-lucide="info" class="w-5 h-5 mr-3"></i>
-            <span class="text-sm font-medium">${message}</span>
-            <button onclick="this.parentElement.parentElement.remove()" class="ml-4">
+            <i data-lucide="${toastIcons[type] || toastIcons.info}" class="w-5 h-5 mr-3 flex-shrink-0"></i>
+            <span class="text-sm font-medium pr-8">${message}</span>
+            <button onclick="this.parentElement.parentElement.remove()" class="absolute top-2 right-2 p-1 hover:bg-black/10 rounded">
                 <i data-lucide="x" class="w-4 h-4"></i>
             </button>
         </div>
@@ -340,7 +416,7 @@ function showToast(message, type = 'info') {
         toast.classList.remove('translate-x-full');
     }, 100);
     
-    // Auto remove after 5 seconds
+    // Auto remove
     setTimeout(() => {
         toast.classList.add('translate-x-full');
         setTimeout(() => {
@@ -348,56 +424,32 @@ function showToast(message, type = 'info') {
                 toast.remove();
             }
         }, 300);
-    }, 5000);
-}
-
-/**
- * Initialize tooltips
- */
-function initTooltips() {
-    const tooltipElements = document.querySelectorAll('[data-tooltip]');
-    
-    tooltipElements.forEach(element => {
-        element.addEventListener('mouseenter', showTooltip);
-        element.addEventListener('mouseleave', hideTooltip);
-    });
-}
-
-/**
- * Show tooltip
- */
-function showTooltip(e) {
-    const text = e.target.getAttribute('data-tooltip');
-    const tooltip = document.createElement('div');
-    tooltip.className = 'absolute bg-gray-900 text-white text-xs px-2 py-1 rounded shadow-lg z-50 pointer-events-none';
-    tooltip.textContent = text;
-    tooltip.id = 'tooltip';
-    
-    document.body.appendChild(tooltip);
-    
-    const rect = e.target.getBoundingClientRect();
-    tooltip.style.left = rect.left + rect.width / 2 - tooltip.offsetWidth / 2 + 'px';
-    tooltip.style.top = rect.top - tooltip.offsetHeight - 8 + 'px';
-}
-
-/**
- * Hide tooltip
- */
-function hideTooltip() {
-    const tooltip = document.getElementById('tooltip');
-    if (tooltip) {
-        tooltip.remove();
-    }
+    }, duration);
 }
 
 // Export functions for global use
 window.PingPongApp = {
     showToast,
     showNotification,
-    formatNumber,
-    formatCurrency,
-    formatDate,
-    formatTime,
+    formatNumber: (num) => new Intl.NumberFormat('en-US').format(num),
+    formatCurrency: (amount) => new Intl.NumberFormat('id-ID', {
+        style: 'currency',
+        currency: 'IDR',
+        minimumFractionDigits: 0
+    }).format(amount),
+    formatDate: (dateString) => new Date(dateString).toLocaleDateString('en-US', {
+        year: 'numeric',
+        month: 'short',
+        day: 'numeric'
+    }),
+    formatTime: (timeString) => {
+        const time = new Date(`1970-01-01T${timeString}`);
+        return time.toLocaleTimeString('en-US', {
+            hour: '2-digit',
+            minute: '2-digit',
+            hour12: false
+        });
+    },
     showLoadingState,
     showErrorState
 };

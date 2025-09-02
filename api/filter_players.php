@@ -15,18 +15,18 @@ $baseSql = "SELECT u.*, s.matches, s.wins, s.tournaments, c.short_name as club_s
 // Tentukan klausa WHERE atau ORDER BY berdasarkan filter
 switch ($filter) {
     case 'online':
-        $sql = $baseSql . " AND u.online = 1";
+        $sql = $baseSql . " AND u.online = 1 ORDER BY u.distance ASC";
         break;
-    case 'pemula':
-        $sql = $baseSql . " AND u.skill IN ('Division 6', 'Division 7', 'Division 8', 'Division 9', 'Division 10')";
+    case 'beginner':
+        $sql = $baseSql . " AND u.skill IN ('Division 6', 'Division 7', 'Division 8', 'Division 9', 'Division 10') ORDER BY u.distance ASC";
         break;
-    case 'menengah':
-        $sql = $baseSql . " AND u.skill IN ('Division 3', 'Division 4', 'Division 5')";
+    case 'intermediate':
+        $sql = $baseSql . " AND u.skill IN ('Division 3', 'Division 4', 'Division 5') ORDER BY u.distance ASC";
         break;
-    case 'mahir':
-        $sql = $baseSql . " AND u.skill IN ('Division 1', 'Division 2')";
+    case 'advanced':
+        $sql = $baseSql . " AND u.skill IN ('Division 1', 'Division 2') ORDER BY u.distance ASC";
         break;
-    case 'terdekat':
+    case 'nearby':
     default:
         $sql = $baseSql . " ORDER BY u.distance ASC";
         break;

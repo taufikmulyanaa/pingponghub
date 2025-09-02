@@ -153,18 +153,27 @@ body {
 
 /* Navigation Styles */
 .nav-item {
-    @apply flex items-center gap-3 px-3 py-2 rounded-lg transition-colors text-sm font-medium;
+    @apply flex items-center gap-3 px-4 py-3 rounded-xl transition-all duration-200 text-sm;
     color: var(--muted-foreground);
+    border: 1px solid transparent;
 }
 
 .nav-item:hover {
     background: var(--accent);
     color: var(--accent-foreground);
+    transform: translateY(-1px);
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.05);
 }
 
 .nav-item.active {
-    background: rgb(254 215 170 / 0.3); /* orange-100 equivalent */
+    background: linear-gradient(135deg, rgba(249, 115, 22, 0.1) 0%, rgba(251, 146, 60, 0.1) 100%);
     color: var(--orange-primary);
+    border-color: rgba(249, 115, 22, 0.2);
+    font-weight: 600;
+}
+
+.nav-item.active:hover {
+    background: linear-gradient(135deg, rgba(249, 115, 22, 0.15) 0%, rgba(251, 146, 60, 0.15) 100%);
 }
 
 /* Input Styles */
