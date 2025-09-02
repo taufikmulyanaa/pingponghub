@@ -3,51 +3,141 @@ require_once 'config/db.php';
 require_once 'lib/functions.php';
 ?>
 <!DOCTYPE html>
-<html lang="id">
+<html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>PingPong+ App</title>
+    <title>PingPong+ - Table Tennis Community</title>
+    
+    <!-- Tailwind CSS -->
     <script src="https://cdn.tailwindcss.com"></script>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    
+    <!-- Lucide Icons -->
+    <script src="https://unpkg.com/lucide@latest/dist/umd/lucide.js"></script>
+    
+    <!-- Chart.js -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    
+    <!-- Custom Styles -->
+    <link rel="stylesheet" href="assets/css/style.css">
+    
+    <!-- Tailwind Configuration -->
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    fontFamily: {
+                        sans: ['Inter', 'sans-serif'],
+                    },
+                    colors: {
+                        border: 'hsl(214.3, 31.8%, 91.4%)',
+                        input: 'hsl(214.3, 31.8%, 91.4%)',
+                        ring: 'hsl(222.2, 84%, 4.9%)',
+                        background: 'hsl(0, 0%, 100%)',
+                        foreground: 'hsl(222.2, 84%, 4.9%)',
+                        primary: {
+                            DEFAULT: 'hsl(221.2, 83.2%, 53.3%)',
+                            foreground: 'hsl(210, 40%, 98%)',
+                        },
+                        secondary: {
+                            DEFAULT: 'hsl(210, 40%, 96.1%)',
+                            foreground: 'hsl(222.2, 47.4%, 11.2%)',
+                        },
+                        muted: {
+                            DEFAULT: 'hsl(210, 40%, 96.1%)',
+                            foreground: 'hsl(215.4, 16.3%, 46.9%)',
+                        },
+                        accent: {
+                            DEFAULT: 'hsl(210, 40%, 96.1%)',
+                            foreground: 'hsl(222.2, 47.4%, 11.2%)',
+                        },
+                        card: {
+                            DEFAULT: 'hsl(0, 0%, 100%)',
+                            foreground: 'hsl(222.2, 84%, 4.9%)',
+                        },
+                    },
+                    borderRadius: {
+                        lg: `0.5rem`,
+                        md: `calc(0.5rem - 2px)`,
+                        sm: `calc(0.5rem - 4px)`,
+                    },
+                }
+            }
+        }
+    </script>
+    
     <style>
-        body { font-family: 'Inter', sans-serif; }
-        /* Atur agar konten tidak tertutup bottom nav di mobile */
-        body { padding-bottom: 64px; }
+        /* Critical CSS for immediate rendering */
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: hsl(210, 40%, 98%);
+            padding-bottom: 64px;
+        }
         @media (min-width: 768px) {
             body { padding-bottom: 0; }
         }
     </style>
 </head>
-<body class="bg-gray-50">
+<body class="bg-muted/40 font-sans text-foreground antialiased">
 
-    <div class="md:flex">
-        <aside class="hidden md:block md:w-64 bg-white border-r border-gray-200 p-6 min-h-screen">
-            <div class="flex items-center mb-8">
-                <span class="text-3xl font-bold text-orange-500 mr-2">🏓</span>
-                <h1 class="text-2xl font-bold text-gray-900">PingPong+</h1>
+    <div class="flex min-h-screen bg-background">
+        <!-- Desktop Sidebar -->
+        <aside class="hidden md:block w-64 flex-shrink-0 flex flex-col border-r border-border bg-card">
+            <div class="p-6">
+                <!-- Logo -->
+                <div class="flex items-center mb-8">
+                    <div class="w-8 h-8 rounded-lg bg-orange-500 flex items-center justify-center mr-3">
+                        <i data-lucide="table-tennis-paddle" class="w-5 h-5 text-white"></i>
+                    </div>
+                    <h1 class="text-xl font-bold text-foreground">PingPong+</h1>
+                </div>
+                
+                <!-- Navigation -->
+                <nav class="flex flex-col space-y-1">
+                    <?php
+                    $navItems = [
+                        ['id' => 'index', 'label' => 'Home', 'icon' => 'home'],
+                        ['id' => 'discover', 'label' => 'Discover', 'icon' => 'search'],
+                        ['id' => 'play', 'label' => 'Play', 'icon' => 'play'],
+                        ['id' => 'ptm', 'label' => 'Clubs', 'icon' => 'building'],
+                        ['id' => 'profile', 'label' => 'Profile', 'icon' => 'user']
+                    ];
+                    $currentPage = basename($_SERVER['PHP_SELF'], ".php");
+
+                    foreach ($navItems as $item) {
+                        $isActive = ($currentPage == $item['id']) ? 'nav-item active' : 'nav-item';
+                        echo "<a href='{$item['id']}.php' class='{$isActive}'>
+                                <i data-lucide='{$item['icon']}' class='w-5 h-5'></i>
+                                <span>{$item['label']}</span>
+                              </a>";
+                    }
+                    ?>
+                </nav>
             </div>
-            <nav class="flex flex-col space-y-2">
-                <?php
-                $navItems = [
-                    ['id' => 'index', 'label' => 'Home', 'icon' => '🏠'],
-                    ['id' => 'discover', 'label' => 'Discover', 'icon' => '🔍'],
-                    ['id' => 'play', 'label' => 'Play', 'icon' => '▶️'],
-                    ['id' => 'ptm', 'label' => 'PTM', 'icon' => '🏢'],
-                    ['id' => 'profile', 'label' => 'Profile', 'icon' => '👤']
-                ];
-                // Dapatkan nama file saat ini
-                $currentPage = basename($_SERVER['PHP_SELF'], ".php");
+            
+            <!-- Upgrade Card -->
+            <div class="mt-auto p-6">
+                <div class="card p-4 gradient-orange text-white">
+                    <div class="flex items-center mb-2">
+                        <i data-lucide="crown" class="w-5 h-5 mr-2"></i>
+                        <span class="font-semibold">Go Premium</span>
+                    </div>
+                    <p class="text-sm text-orange-100 mb-3">Unlock advanced features and analytics</p>
+                    <button class="btn w-full bg-white/20 hover:bg-white/30 text-white border-white/30">
+                        Upgrade Now
+                    </button>
+                </div>
+            </div>
+        </aside>
 
-                foreach ($navItems as $item) {
-                    $isActive = ($currentPage == $item['id']) ? 'bg-orange-100 text-orange-600' : 'text-gray-600 hover:bg-gray-100';
-                    echo "<a href='{$item['id']}.php' class='flex items-center px-4 py-3 rounded-lg font-medium {$isActive}'>
-                            <span class='mr-3 text-xl'>{$item['icon']}</span>
-                            {$item['label']}
-                          </a>";
-                }
-                ?>
-            </nav>
-            </aside>
-
-        <main class="flex-grow">
+        <!-- Main Content Area -->
+        <main class="flex-1 flex flex-col min-h-screen overflow-y-auto"><?php
+    // Initialize Lucide icons when page loads
+    echo '<script>
+        document.addEventListener("DOMContentLoaded", function() {
+            if (typeof lucide !== "undefined") {
+                lucide.createIcons();
+            }
+        });
+    </script>';
+?>

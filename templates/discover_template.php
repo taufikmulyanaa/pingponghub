@@ -1,86 +1,252 @@
-<?php // File: templates/discover_template.php (Tampilan) ?>
+<?php // File: templates/discover_template.php ?>
 <div class="max-w-4xl mx-auto">
-    <header class="bg-white p-4 border-b border-gray-100 sticky top-0 z-40">
+    <!-- Header -->
+    <header class="bg-card p-4 border-b border-border sticky top-0 z-40 shadow-soft">
         <div class="flex justify-between items-center mb-4">
-            <h1 class="text-xl font-bold text-gray-900">Discover Players</h1>
-            <div>
-                <button class="px-4 py-2 bg-white border border-gray-300 text-gray-700 text-sm rounded-lg font-medium">Filter</button>
-                <button class="px-4 py-2 bg-orange-500 hover:bg-orange-600 text-white text-sm rounded-lg font-medium">Map</button>
+            <div class="flex items-center">
+                <i data-lucide="compass" class="w-6 h-6 text-orange-500 mr-2"></i>
+                <h1 class="text-xl font-bold text-foreground">Discover Players</h1>
+            </div>
+            <div class="flex gap-2">
+                <button class="btn btn-secondary">
+                    <i data-lucide="sliders-horizontal" class="w-4 h-4 mr-2"></i>
+                    Filter
+                </button>
+                <button class="btn btn-primary">
+                    <i data-lucide="map" class="w-4 h-4 mr-2"></i>
+                    Map View
+                </button>
             </div>
         </div>
-        <div class="bg-gray-100 rounded-lg px-4 py-3 flex items-center">
-            <svg class="w-5 h-5 text-gray-500 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/></svg>
-            <input type="text" placeholder="Cari berdasarkan skill, lokasi..." class="bg-transparent text-gray-600 text-sm flex-1 outline-none">
+        
+        <!-- Search Bar -->
+        <div class="relative">
+            <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                <i data-lucide="search" class="w-5 h-5 text-muted-foreground"></i>
+            </div>
+            <input type="text" 
+                   placeholder="Search by skill level, location, club..." 
+                   class="search-input w-full pl-10 pr-4 py-3">
         </div>
     </header>
 
     <div class="p-4">
-        <div class="flex items-center space-x-2 mb-4 overflow-x-auto pb-2">
-            <button data-filter="terdekat" class="player-filter-btn active-filter flex-shrink-0">Terdekat</button>
-            <button data-filter="online" class="player-filter-btn flex-shrink-0">Online</button>
-            <button data-filter="pemula" class="player-filter-btn flex-shrink-0">Pemula</button>
-            <button data-filter="menengah" class="player-filter-btn flex-shrink-0">Menengah</button>
-            <button data-filter="mahir" class="player-filter-btn flex-shrink-0">Mahir</button>
+        <!-- Filter Buttons -->
+        <div class="flex items-center space-x-2 mb-6 overflow-x-auto pb-2">
+            <button data-filter="nearby" class="filter-btn active flex-shrink-0">
+                <i data-lucide="map-pin" class="w-4 h-4 mr-2"></i>
+                Nearby
+            </button>
+            <button data-filter="online" class="filter-btn flex-shrink-0">
+                <i data-lucide="circle" class="w-3 h-3 mr-2 text-green-500"></i>
+                Online
+            </button>
+            <button data-filter="beginner" class="filter-btn flex-shrink-0">
+                <i data-lucide="star" class="w-4 h-4 mr-2"></i>
+                Beginner
+            </button>
+            <button data-filter="intermediate" class="filter-btn flex-shrink-0">
+                <i data-lucide="star" class="w-4 h-4 mr-2"></i>
+                Intermediate
+            </button>
+            <button data-filter="advanced" class="filter-btn flex-shrink-0">
+                <i data-lucide="crown" class="w-4 h-4 mr-2"></i>
+                Advanced
+            </button>
         </div>
-        <style>
-            .player-filter-btn { padding: 6px 16px; border-radius: 9999px; font-size: 14px; font-weight: 500; background-color: #f3f4f6; color: #374151; transition: all 0.2s; }
-            .active-filter { background-color: #f97316; color: white; }
-        </style>
 
-        <h3 id="player-results-header" class="font-semibold text-gray-900 mb-3">
-            Pemain Terdekat (<?= count($players) ?> ditemukan)
-        </h3>
+        <!-- Results Header -->
+        <div class="flex items-center justify-between mb-4">
+            <h3 id="player-results-header" class="font-semibold text-foreground">
+                Nearby Players (<?= count($players) ?> found)
+            </h3>
+            <div class="flex items-center text-sm text-muted-foreground">
+                <i data-lucide="users" class="w-4 h-4 mr-1"></i>
+                <span><?= count($players) ?> players</span>
+            </div>
+        </div>
 
-        <div id="player-list-container" class="space-y-3">
+        <!-- Player List Container -->
+        <div id="player-list-container" class="space-y-4">
             <?php if (empty($players)): ?>
-                <p class="text-center text-gray-500 p-4">Tidak ada pemain yang ditemukan.</p>
+                <div class="card p-8 text-center">
+                    <i data-lucide="user-x" class="w-12 h-12 text-muted-foreground mx-auto mb-4"></i>
+                    <p class="text-muted-foreground">No players found matching your criteria.</p>
+                    <button onclick="location.reload()" class="btn btn-secondary mt-4">
+                        <i data-lucide="refresh-cw" class="w-4 h-4 mr-2"></i>
+                        Refresh
+                    </button>
+                </div>
             <?php else: ?>
                 <?php foreach ($players as $player): 
                     $winRate = ($player['matches'] ?? 0) > 0 ? round(($player['wins'] / $player['matches']) * 100) : 0;
                     $skillInfo = mapSkillToLevel($player['skill']);
+                    $initials = getInitials($player['name']);
                 ?>
-                <div class="bg-white p-4 rounded-lg border border-gray-200 shadow-sm flex space-x-4">
-                    <div class="relative flex-shrink-0">
-                        <div class="w-12 h-12 rounded-full bg-blue-500 text-white flex items-center justify-center font-bold text-xl">
-                            <?= getInitials($player['name']) ?>
+                <!-- Player Card -->
+                <div class="card p-4 hover:shadow-medium transition-all duration-200">
+                    <div class="flex space-x-4">
+                        <!-- Avatar -->
+                        <div class="relative flex-shrink-0">
+                            <div class="avatar avatar-md">
+                                <?= $initials ?>
+                            </div>
+                            <?php if($player['online']): ?>
+                            <span class="absolute -bottom-1 -right-1 w-4 h-4 bg-green-500 border-2 border-white rounded-full"></span>
+                            <?php endif; ?>
                         </div>
-                        <?php if($player['online']): ?>
-                        <span class="absolute bottom-0 right-0 w-3.5 h-3.5 bg-green-500 border-2 border-white rounded-full"></span>
-                        <?php endif; ?>
-                    </div>
-                    <div class="flex-1">
-                        <div class="flex justify-between items-start">
-                            <div>
-                                <p class="font-bold text-gray-900"><?= htmlspecialchars($player['name']) ?></p>
-                                <div class="flex items-center text-xs text-gray-500 mt-1">
-                                    <span>⭐ <?= htmlspecialchars($player['elo'] ?? '0') ?></span>
-                                    <span class="mx-2">|</span>
-                                    <span>💬 <?= htmlspecialchars($player['reviews'] ?? '0') ?> Reviews</span>
-                                    <?php if($player['club_short_name']): ?>
-                                    <span class="mx-2">|</span>
-                                    <span class="font-semibold text-orange-600"><?= htmlspecialchars($player['club_short_name']) ?></span>
-                                    <?php endif; ?>
+                        
+                        <!-- Player Info -->
+                        <div class="flex-1 min-w-0">
+                            <!-- Header Row -->
+                            <div class="flex justify-between items-start mb-2">
+                                <div>
+                                    <h4 class="font-semibold text-foreground truncate">
+                                        <?= htmlspecialchars($player['name']) ?>
+                                    </h4>
+                                    <div class="flex items-center text-xs text-muted-foreground mt-1 space-x-3">
+                                        <div class="flex items-center">
+                                            <i data-lucide="star" class="w-3 h-3 mr-1"></i>
+                                            <span><?= htmlspecialchars($player['elo'] ?? '0') ?></span>
+                                        </div>
+                                        <div class="flex items-center">
+                                            <i data-lucide="message-circle" class="w-3 h-3 mr-1"></i>
+                                            <span><?= htmlspecialchars($player['reviews'] ?? '0') ?> reviews</span>
+                                        </div>
+                                        <?php if($player['club_short_name']): ?>
+                                        <div class="flex items-center text-orange-600 font-medium">
+                                            <i data-lucide="building" class="w-3 h-3 mr-1"></i>
+                                            <span><?= htmlspecialchars($player['club_short_name']) ?></span>
+                                        </div>
+                                        <?php endif; ?>
+                                    </div>
+                                </div>
+                                <div class="text-right text-sm font-medium text-muted-foreground flex items-center">
+                                    <i data-lucide="map-pin" class="w-4 h-4 mr-1"></i>
+                                    <span><?= htmlspecialchars($player['distance'] ?? 'N/A') ?>km</span>
                                 </div>
                             </div>
-                            <span class="text-sm font-medium text-gray-600"><?= htmlspecialchars($player['distance'] ?? 'N/A') ?>km</span>
-                        </div>
-                        <div class="flex items-center space-x-2 my-2">
-                            <span class="text-xs font-medium px-2 py-1 rounded-full <?= $skillInfo['class'] ?>"><?= $skillInfo['label'] ?></span>
-                            <span class="text-xs font-medium px-2 py-1 rounded-full bg-gray-100 text-gray-800"><?= htmlspecialchars($player['style'] ?? '') ?></span>
-                            <?php if($player['online']): ?><span class="text-xs font-medium px-2 py-1 rounded-full bg-green-100 text-green-800">Online</span><?php endif; ?>
-                        </div>
-                        <div class="flex justify-between items-center border-t border-gray-100 pt-2 mt-2">
-                            <div class="flex items-center space-x-4 text-sm text-gray-600">
-                                <span>🏆 <?= htmlspecialchars($player['tournaments'] ?? '0') ?></span>
-                                <span>📈 <?= $winRate ?>%</span>
-                                <span>📅 <?= htmlspecialchars($player['availability'] ?? 'N/A') ?></span>
+                            
+                            <!-- Badges Row -->
+                            <div class="flex items-center space-x-2 mb-3">
+                                <span class="badge <?= $skillInfo['class'] ?>"><?= $skillInfo['label'] ?></span>
+                                <span class="badge badge-status"><?= htmlspecialchars($player['style'] ?? '') ?></span>
+                                <?php if($player['online']): ?>
+                                <span class="badge badge-online">
+                                    <span class="status-dot status-online mr-1"></span>
+                                    Online
+                                </span>
+                                <?php endif; ?>
                             </div>
-                            <a href="#" class="px-4 py-1.5 bg-orange-500 hover:bg-orange-600 text-white text-sm rounded-lg font-medium">Chat</a>
+                            
+                            <!-- Stats & Actions Row -->
+                            <div class="flex justify-between items-center border-t border-border pt-3">
+                                <div class="flex items-center space-x-4 text-sm text-muted-foreground">
+                                    <div class="flex items-center">
+                                        <i data-lucide="trophy" class="w-4 h-4 mr-1"></i>
+                                        <span><?= htmlspecialchars($player['tournaments'] ?? '0') ?></span>
+                                    </div>
+                                    <div class="flex items-center">
+                                        <i data-lucide="trending-up" class="w-4 h-4 mr-1"></i>
+                                        <span><?= $winRate ?>%</span>
+                                    </div>
+                                    <div class="flex items-center">
+                                        <i data-lucide="calendar" class="w-4 h-4 mr-1"></i>
+                                        <span><?= htmlspecialchars($player['availability'] ?? 'N/A') ?></span>
+                                    </div>
+                                </div>
+                                
+                                <div class="flex space-x-2">
+                                    <button class="btn btn-secondary text-sm py-1.5 px-3" data-tooltip="View Profile">
+                                        <i data-lucide="user" class="w-4 h-4"></i>
+                                    </button>
+                                    <button class="btn btn-primary text-sm py-1.5 px-3">
+                                        <i data-lucide="message-circle" class="w-4 h-4 mr-2"></i>
+                                        Chat
+                                    </button>
+                                </div>
+                            </div>
                         </div>
                     </div>
                 </div>
                 <?php endforeach; ?>
             <?php endif; ?>
         </div>
+        
+        <!-- Load More Button -->
+        <?php if (count($players) >= 10): ?>
+        <div class="text-center mt-8">
+            <button class="btn btn-secondary" data-dynamic-load>
+                <i data-lucide="chevron-down" class="w-4 h-4 mr-2"></i>
+                Load More Players
+            </button>
+        </div>
+        <?php endif; ?>
     </div>
 </div>
+
+<script>
+    // Initialize player filters with updated data attributes
+    document.addEventListener('DOMContentLoaded', function() {
+        const filterButtons = document.querySelectorAll('.filter-btn');
+        const playerListContainer = document.getElementById('player-list-container');
+        const resultsHeader = document.getElementById('player-results-header');
+
+        if (filterButtons.length > 0 && playerListContainer && resultsHeader) {
+            filterButtons.forEach(button => {
+                button.addEventListener('click', async () => {
+                    // Update active button state
+                    filterButtons.forEach(btn => btn.classList.remove('active'));
+                    button.classList.add('active');
+
+                    const filter = button.dataset.filter;
+                    
+                    // Show loading state
+                    playerListContainer.innerHTML = `
+                        <div class="card p-8 text-center">
+                            <div class="animate-spin rounded-full h-8 w-8 border-b-2 border-orange-500 mx-auto mb-4"></div>
+                            <p class="text-muted-foreground">Loading players...</p>
+                        </div>
+                    `;
+                    
+                    try {
+                        const response = await fetch(`api/filter_players.php?filter=${filter}`);
+                        const html = await response.text();
+                        
+                        playerListContainer.innerHTML = html;
+                        
+                        // Update header
+                        const countEl = playerListContainer.querySelector('#player-count');
+                        if(countEl) {
+                            const count = countEl.dataset.count;
+                            const filterName = button.textContent.trim();
+                            resultsHeader.innerHTML = `${filterName} (${count} found)`;
+                            countEl.remove();
+                        }
+                        
+                        // Reinitialize icons
+                        if (typeof lucide !== 'undefined') {
+                            lucide.createIcons();
+                        }
+                        
+                    } catch (error) {
+                        console.error('Error filtering players:', error);
+                        playerListContainer.innerHTML = `
+                            <div class="card p-8 text-center text-red-500">
+                                <i data-lucide="alert-circle" class="w-8 h-8 mx-auto mb-4"></i>
+                                <p>Failed to load players. Please try again.</p>
+                                <button onclick="location.reload()" class="btn btn-secondary mt-4">
+                                    <i data-lucide="refresh-cw" class="w-4 h-4 mr-2"></i>
+                                    Refresh
+                                </button>
+                            </div>
+                        `;
+                        if (typeof lucide !== 'undefined') {
+                            lucide.createIcons();
+                        }
+                    }
+                });
+            });
+        }
+    });
+</script>
